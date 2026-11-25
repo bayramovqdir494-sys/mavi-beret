@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Mavi Beret — taktiki atışma</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--ac:#86aee0;--gold:#f1c55b;--pn:rgba(12,16,23,.66);--ln:rgba(255,255,255,.12);--tx:#eef2f7;--mu:#9fb0c6}
+html,body{margin:0;height:100%;overflow:hidden;background:#0d1117;color:var(--tx);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:none}
+svg{display:block}
+/* ================= HUD ================= */
+#hud{position:fixed;inset:0;pointer-events:none;font-weight:700;letter-spacing:.02em;display:none}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:12px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#sqd{position:absolute;left:12px;top:12px;width:182px;padding:9px 11px}
+.row{display:flex;align-items:center;gap:7px;font-size:11px;margin-bottom:6px}
+.row b{width:48px;font-weight:800;color:#cfe0f5;white-space:nowrap}
+.row i.dot{width:7px;height:7px;border-radius:50%;background:#7fc0ff;flex:none}
+.row.me i.dot{background:#fff}
+.bar{flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#4fbf6a,#9be38f);transition:width .12s}
+.row.low .bar i{background:linear-gradient(90deg,#d8452f,#f08a3c)}.row.dn b{color:#ff8a70}.row.dn .bar i{background:#b23a2a}
+#sq{pointer-events:auto;margin-top:3px;width:100%;border:1px solid rgba(255,255,255,.18);background:rgba(108,146,194,.22);color:#dbe8f8;font:inherit;font-size:10.5px;letter-spacing:.08em;border-radius:8px;padding:6px 4px;cursor:pointer}
+#sq.h{background:rgba(241,197,91,.25);color:#ffe2a0}
+#tc{position:absolute;left:50%;top:12px;transform:translateX(-50%);text-align:center;width:min(56vw,560px)}
+#ob{display:inline-flex;gap:9px;align-items:center;padding:7px 15px;font-size:11.5px;letter-spacing:.12em;white-space:nowrap}
+#ob em{font-style:normal;color:#ff7a5c;font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}
+#ob em.g{color:var(--gold)}#ob span{color:var(--mu)}#ob .sep{width:1px;height:16px;background:var(--ln)}
+#wv{color:var(--gold)!important}
+#ms{margin-top:7px;display:flex;flex-direction:column;align-items:center;gap:4px}
+#ms div{padding:5px 12px;border-radius:9px;background:rgba(12,16,23,.7);font-size:12.5px;font-weight:600;border-left:3px solid #6c92c2;animation:mi .25s ease-out;max-width:100%}
+#ms div.p1{border-color:#63c97a}#ms div.p2{border-color:#ff8a4c;color:#ffe3d2}
+@keyframes mi{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+#tr{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+#mm{display:block;width:140px;height:140px;border-radius:50%;box-shadow:0 3px 14px rgba(0,0,0,.4)}
+#pz{pointer-events:auto;position:absolute;right:0;top:0;width:34px;height:30px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:rgba(12,16,23,.7);color:#fff;font-size:12px;font-weight:900;cursor:pointer;transform:translate(-150px,0)}
+#feed{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:200px}
+#feed div{display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:8px;background:rgba(12,16,23,.62);font-size:11.5px;animation:mi .2s ease-out;transition:opacity .4s}
+#feed div.me{background:rgba(70,110,160,.55)}#feed svg{height:13px;width:auto;fill:#e9eef5}#feed .v{color:#ff8f78}
+#hp{position:absolute;left:14px;bottom:14px;display:flex;align-items:center;gap:10px;padding:10px 14px;width:258px}
+#hp svg{width:22px;height:22px;fill:#5fd07c;flex:none}#hp.low svg{fill:#ff5b45}
+.hb{flex:1;height:12px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden}
+.hb i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#3fb35f,#9be38f);transition:width .15s}
+#hp.low .hb i{background:linear-gradient(90deg,#c9372a,#ff7a4c)}
+#hp b{font-size:22px;font-weight:900;min-width:40px;text-align:right;font-variant-numeric:tabular-nums}
+#wc{position:absolute;right:14px;bottom:14px;padding:10px 14px 11px;width:270px}
+.slots{display:flex;gap:6px;margin-bottom:6px}
+.sl{flex:1;display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:8px;border:1px solid var(--ln);opacity:.45}
+.sl.on{opacity:1;border-color:var(--gold);background:rgba(241,197,91,.12)}
+.sl svg{height:16px;width:auto;fill:#e9eef5;flex:1}.sl kbd{font:inherit;font-size:9px;color:var(--mu);border:1px solid var(--ln);border-radius:4px;padding:0 4px}
+.wl{display:flex;align-items:baseline;gap:8px}
+#wname{font-size:11px;color:var(--gold);letter-spacing:.14em;margin-right:auto}
+#amn{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}#amr{font-size:14px;color:var(--mu);font-variant-numeric:tabular-nums}
+.gr{display:flex;gap:8px;margin-top:8px}
+.gi{display:flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border-radius:9px;font-size:13px}
+.gi svg{width:20px;height:20px}
+.gi.fr{background:linear-gradient(135deg,#2f7a40,#4fae62);color:#eaffef}.gi.fr svg{fill:#d9ffe2}
+.gi.fl{background:linear-gradient(135deg,#c99a22,#f2cf5a);color:#2a2005}.gi.fl svg{fill:#3a2c05}
+.gi kbd{font:inherit;font-size:9px;font-weight:800;opacity:.75;border:1px solid currentColor;border-radius:4px;padding:0 4px}
+.gi.zero{filter:grayscale(1);opacity:.45}
+#pop{position:absolute;left:50%;top:58%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px}
+#pop div{font-size:15px;font-weight:900;letter-spacing:.08em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);animation:pu 1.4s ease-out forwards}
+#pop div.p1{color:#9fe08a}#pop div.p2{color:var(--gold);font-size:19px}
+@keyframes pu{0%{opacity:0;transform:translateY(10px) scale(.9)}12%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+#intro{position:absolute;left:0;right:0;top:30%;text-align:center;opacity:0;transition:opacity .6s}
+#intro small{display:block;font-size:12px;letter-spacing:.4em;color:var(--ac)}#intro h2{margin:6px 0;font-size:clamp(34px,7vw,64px);font-weight:900;letter-spacing:.06em;text-shadow:0 4px 20px rgba(0,0,0,.6)}
+#intro p{margin:0;font-size:14px;color:#dbe4ef;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+#xh{position:absolute;left:0;top:0;width:0;height:0;display:none}
+#xh i{position:absolute;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.55);border-radius:1px}
+#xh i:nth-child(1),#xh i:nth-child(2){width:2px;height:8px;left:-1px}
+#xh i:nth-child(3),#xh i:nth-child(4){width:8px;height:2px;top:-1px}
+#xh u{position:absolute;left:-1.5px;top:-1.5px;width:3px;height:3px;border-radius:50%;background:#ff5b45}
+#scope{position:absolute;inset:0;display:none;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 33vmin,rgba(0,0,0,.92) 33.4vmin)}
+#scope:before,#scope:after{content:"";position:absolute;left:50%;top:50%;background:rgba(0,0,0,.85)}
+#scope:before{width:66vmin;height:2px;margin:-1px 0 0 -33vmin}#scope:after{height:66vmin;width:2px;margin:-33vmin 0 0 -1px}
+#scope i{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#ff3b2b}
+#hm{position:absolute;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;opacity:0;transition:opacity .22s}
+#hm:before{content:"";position:absolute;inset:0;background:linear-gradient(45deg,transparent 46%,#fff 46%,#fff 54%,transparent 54%),linear-gradient(-45deg,transparent 46%,#fff 46%,#fff 54%,transparent 54%);-webkit-mask:radial-gradient(circle,transparent 5px,#000 6px);mask:radial-gradient(circle,transparent 5px,#000 6px)}
+#hm.k:before{background:linear-gradient(45deg,transparent 44%,#ff5b45 44%,#ff5b45 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,#ff5b45 44%,#ff5b45 56%,transparent 56%)}
+#vg{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 48%,rgba(200,20,10,.62) 100%);opacity:0}
+#sh{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(6,9,14,.42) 100%)}
+#wh{position:absolute;inset:0;background:#fff;opacity:0}
+.dd{position:absolute;left:50%;top:50%;width:0;height:0;opacity:0;transition:opacity .5s}
+.dd:before{content:"";position:absolute;left:-46px;top:-128px;width:92px;height:26px;border-radius:92px 92px 0 0/26px 26px 0 0;background:radial-gradient(ellipse at 50% 100%,transparent 55%,rgba(255,60,40,.9) 58%,rgba(255,60,40,0) 100%)}
+.ar{position:absolute;left:0;top:0;width:0;height:0;display:none}
+.ar:before{content:"";position:absolute;left:-9px;top:-12px;border:9px solid transparent;border-bottom:16px solid #ff5b45;filter:drop-shadow(0 0 3px rgba(0,0,0,.7))}
+#pr{position:absolute;left:50%;bottom:24%;transform:translateX(-50%);padding:7px 15px;font-size:12.5px;display:none;color:#bfe0ff}
+/* touch layout */
+body.touch #hp,body.touch #pz{display:none}
+body.touch #wc{left:12px;right:auto;bottom:auto;top:146px;width:182px;padding:7px 10px}
+body.touch #wc .slots,body.touch #wc .gr{display:none}body.touch #amn{font-size:22px}body.touch .wl{flex-wrap:nowrap;white-space:nowrap}body.touch #wname{font-size:9.5px;letter-spacing:.08em}body.touch #amr{font-size:12px}
+body.touch #feed{display:none}
+/* ================= touch controls ================= */
+#tch{position:fixed;inset:0;pointer-events:none;display:none}
+.stk{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:2px solid rgba(255,255,255,.26);background:rgba(255,255,255,.06);opacity:.55}
+.stk i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.5)}
+.stk.on{opacity:1}
+.tb{position:absolute;pointer-events:auto;width:58px;height:58px;border-radius:50%;border:2px solid rgba(255,255,255,.55);color:#fff;font:inherit;font-weight:800;font-size:8.5px;letter-spacing:.03em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3);padding:0}
+.tb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tb svg.f{fill:currentColor;stroke:none}
+.tb:active,.tb.on{transform:scale(.93);filter:brightness(1.25)}
+.tb b{color:#fff;position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#11161e;border:1.5px solid rgba(255,255,255,.7);font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.tb.zero{filter:grayscale(1);opacity:.5}
+#bFire{width:88px;height:88px;font-size:10.5px;background:radial-gradient(circle at 35% 30%,#ff7a5c,#c9332a 70%)}#bFire svg{width:34px;height:34px}
+#bFr{background:radial-gradient(circle at 35% 30%,#6fcf7f,#2f7a40 72%)}
+#bFl{background:radial-gradient(circle at 35% 30%,#ffe38a,#d9a520 72%);color:#2a1f03}
+#bRel{background:radial-gradient(circle at 35% 30%,#7fb6ff,#2f6fb3 72%)}
+#bSw{background:radial-gradient(circle at 35% 30%,#ffb46a,#d06a22 72%)}
+#bCr{background:radial-gradient(circle at 35% 30%,#b99bff,#6a45b0 72%)}
+#bRoll{background:radial-gradient(circle at 35% 30%,#6fe0d3,#21877c 72%)}
+#bAds{background:radial-gradient(circle at 35% 30%,#7fdcff,#2287ae 72%)}
+/* ================= screens ================= */
+.scr{position:fixed;inset:0;display:none;flex-direction:column;padding:22px;overflow:auto}
+.scr.on{display:flex}
+.btn{pointer-events:auto;font:inherit;font-weight:800;letter-spacing:.12em;border-radius:11px;cursor:pointer;color:#e8eef6;border:1px solid rgba(255,255,255,.2);background:rgba(16,22,32,.72);padding:12px 18px;font-size:13px;text-align:left;display:flex;align-items:center;gap:12px;transition:transform .12s,background .12s,border-color .12s}
+.btn:hover{background:rgba(40,54,76,.85);border-color:rgba(255,255,255,.4);transform:translateX(3px)}
+.btn svg{width:18px;height:18px;fill:currentColor;flex:none}
+.btn.pri{background:linear-gradient(135deg,#f6d36e,#e2a92c);color:#1d1503;border-color:#f6d36e;font-size:16px;padding:15px 22px;box-shadow:0 8px 26px rgba(241,197,91,.3)}
+.btn.c{justify-content:center;text-align:center}
+.vig{background:linear-gradient(90deg,rgba(8,11,17,.9) 0%,rgba(8,11,17,.55) 38%,rgba(8,11,17,0) 70%),linear-gradient(0deg,rgba(8,11,17,.75),rgba(8,11,17,0) 35%)}
+#menu{justify-content:center;padding:28px 6vw}
+.logo{font-size:clamp(42px,8vw,86px);line-height:.88;font-weight:900;letter-spacing:.01em;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.logo span{color:var(--ac);display:block}
+.tag{margin:10px 0 22px;font-size:12px;letter-spacing:.42em;color:#c9d6e6;font-weight:700}
+.mcol{display:flex;flex-direction:column;gap:9px;width:min(320px,86vw)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:20px;background:rgba(16,22,32,.75);border:1px solid var(--ln);font-size:11px;font-weight:700;letter-spacing:.08em;color:#cfdbea}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--ac)}
+.chip svg{height:12px;width:auto;fill:#dfe7f1}
+.ver{position:absolute;right:18px;bottom:14px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.2em}
+.dim{background:rgba(7,10,15,.8);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.hd{display:flex;align-items:center;gap:14px;margin:0 auto 16px;width:min(1080px,100%)}
+.hd h2{margin:0;font-size:clamp(22px,4vw,32px);font-weight:900;letter-spacing:.08em}
+.hd .btn{padding:9px 14px;font-size:11px}
+.wrap{width:min(1080px,100%);margin:0 auto}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mcard{pointer-events:auto;cursor:pointer;border-radius:14px;overflow:hidden;background:rgba(18,24,34,.9);border:2px solid rgba(255,255,255,.08);transition:transform .15s,border-color .15s;position:relative}
+.mcard:hover{transform:translateY(-3px)}.mcard.on{border-color:var(--c,#86aee0);box-shadow:0 0 0 3px rgba(255,255,255,.06),0 10px 30px rgba(0,0,0,.45)}
+.mcard .im{aspect-ratio:16/10;background:#1d2633 center/cover;position:relative}
+.mcard .im:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(18,24,34,.95),rgba(18,24,34,0) 55%)}
+.mcard .bd{padding:2px 14px 14px;margin-top:-30px;position:relative;z-index:1}
+.mcard h3{margin:0;font-size:18px;font-weight:900;letter-spacing:.06em}
+.mcard .sb{font-size:10.5px;letter-spacing:.14em;color:var(--c,#86aee0);font-weight:800;margin:3px 0 7px}
+.mcard p{margin:0;font-size:12px;line-height:1.45;color:#b5c2d2;font-weight:500;min-height:52px}
+.mcard .mt{display:flex;justify-content:space-between;margin-top:9px;font-size:11px;color:#cfdbea;font-weight:700}
+.mcard .st{color:var(--gold);letter-spacing:2px}.mcard .st i{font-style:normal;color:rgba(255,255,255,.2)}
+.mcard .ck{position:absolute;top:10px;right:10px;z-index:2;width:26px;height:26px;border-radius:50%;background:var(--c,#86aee0);display:none;align-items:center;justify-content:center;color:#10161f;font-weight:900}
+.mcard.on .ck{display:flex}
+.foot{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.seg{display:inline-flex;border-radius:11px;overflow:hidden;border:1px solid rgba(255,255,255,.18)}
+.seg button{pointer-events:auto;font:inherit;font-weight:800;font-size:11.5px;letter-spacing:.1em;padding:10px 15px;background:rgba(16,22,32,.72);color:#cfdbea;border:0;cursor:pointer;border-right:1px solid rgba(255,255,255,.1)}
+.seg button:last-child{border-right:0}.seg button.on{background:var(--ac);color:#0d1420}
+.lbl{font-size:10.5px;letter-spacing:.2em;color:var(--mu);font-weight:800}
+.foot .btn.pri{margin-left:auto}
+.sec{margin:6px 0 10px;font-size:11px;letter-spacing:.3em;color:var(--mu);font-weight:800}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.wcard{pointer-events:auto;cursor:pointer;border-radius:13px;padding:12px 14px;background:rgba(18,24,34,.9);border:2px solid rgba(255,255,255,.08);transition:transform .15s,border-color .15s}
+.wcard:hover{transform:translateY(-2px)}.wcard.on{border-color:var(--gold);background:rgba(40,34,18,.9)}
+.wcard svg{height:34px;width:100%;fill:#e7edf5;margin:4px 0 8px}.wcard.on svg{fill:#ffe39a}
+.wcard h4{margin:0 0 2px;font-size:14px;font-weight:900;letter-spacing:.08em}
+.wcard p{margin:0 0 9px;font-size:11px;color:#a9b7c8;font-weight:500;min-height:28px}
+.stt{display:grid;grid-template-columns:62px 1fr;gap:4px 8px;align-items:center;font-size:9px;letter-spacing:.1em;color:#9fb0c6;font-weight:800}
+.stt div{height:5px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}.stt div i{display:block;height:100%;background:linear-gradient(90deg,#86aee0,#bcd6f5)}
+.wcard.on .stt div i{background:linear-gradient(90deg,#e2a92c,#f6d36e)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.set{background:rgba(18,24,34,.9);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:14px 16px}
+.set h4{margin:0 0 10px;font-size:12px;letter-spacing:.18em;color:#cfdbea}
+input[type=range]{pointer-events:auto;width:100%;accent-color:var(--gold)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:13px;align-items:center;font-weight:600;color:#dbe4ef}
+.keys kbd{font:inherit;font-weight:800;font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);white-space:nowrap;justify-self:start}
+.card{background:rgba(13,17,24,.92);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:24px 26px;width:min(92vw,420px);margin:auto}
+.card h2{margin:0 0 4px;font-size:28px;font-weight:900;letter-spacing:.05em}
+.card p{margin:0 0 14px;color:#aebccd;font-size:13px;font-weight:500}
+.card .btn{width:100%;margin-top:8px;justify-content:center;text-align:center}.card .btn.pri{font-size:14px;padding:14px 16px}
+.stg{display:grid;grid-template-columns:1fr auto;gap:7px 14px;text-align:left;font-size:14px;margin:12px 0 8px}
+.stg span{color:#aebccd;font-weight:500}.stg b{font-variant-numeric:tabular-nums}.stg b.g{color:var(--gold)}
+.stars{font-size:32px;letter-spacing:7px;color:var(--gold);margin:4px 0 2px}.stars i{font-style:normal;color:rgba(255,255,255,.18)}
+#load{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(circle at 50% 40%,#1b2433,#0b0f15 70%);z-index:5}
+#load .logo{font-size:clamp(34px,7vw,60px);text-align:center}
+.lb{width:min(320px,70vw);height:6px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}.lb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#86aee0,#f1c55b);transition:width .2s}
+#lt{font-size:11px;letter-spacing:.3em;color:var(--mu);font-weight:700}
+#err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;font-size:15px;background:#11141a;z-index:9}
+@media (max-width:980px){.mgrid{grid-template-columns:repeat(2,1fr)}.wgrid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){#sqd{width:150px;padding:7px 9px}#tc{width:calc(100vw - 340px);min-width:130px}#ob{padding:5px 9px;font-size:9.5px;gap:6px}#ob #zn,#ob .sep,#ob .sc,#ob #scv,#mapn{display:none}#ms div{font-size:11px}#mm{width:106px;height:106px}#pz{transform:translate(-114px,0)}
+  .sgrid{grid-template-columns:1fr}.mcard p{display:none}.mcard .bd{padding:2px 10px 10px}.mcard h3{font-size:14px}.wcard p{display:none}.scr{padding:14px}.foot .btn.pri{margin-left:0;width:100%;justify-content:center}}
+@media (max-width:520px){#tc{left:8px;right:8px;width:auto;transform:none;top:196px;text-align:left}#ms{align-items:flex-start}body.touch #wc{top:auto;bottom:auto;top:132px;width:150px}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="hud">
+  <div id="sh"></div><div id="vg"></div><div id="scope"><i></i></div>
+  <div id="sqd" class="pn">
+    <div class="row me" id="r0"><i class="dot"></i><b>SƏN</b><div class="bar"><i></i></div></div>
+    <div class="row" id="r1"><i class="dot"></i><b>TURAL</b><div class="bar"><i></i></div></div>
+    <div class="row" id="r2"><i class="dot"></i><b>RƏŞAD</b><div class="bar"><i></i></div></div>
+    <button id="sq">DƏSTƏ: İZLƏ</button>
+  </div>
+  <div id="tc"><div id="ob" class="pn"><span id="wv"></span><span id="mapn"></span><span class="sep"></span><span>DÜŞMƏN</span><em id="ec">0</em><span id="zn"></span><span class="sep"></span><span class="sc">XAL</span><em id="scv" class="g">0</em></div><div id="ms"></div></div>
+  <div id="tr"><canvas id="mm" width="200" height="200"></canvas><div id="feed"></div><button id="pz">II</button></div>
+  <div id="hp" class="pn"><svg viewBox="0 0 24 24"><path d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7z"/></svg><div class="hb"><i></i></div><b id="hpn">100</b></div>
+  <div id="wc" class="pn">
+    <div class="slots"><div class="sl on" id="sl0"><kbd>1</kbd></div><div class="sl" id="sl1"><kbd>2</kbd></div></div>
+    <div class="wl"><span id="wname">AVTOMAT</span><span id="amn">30</span><span id="amr">/ 150</span></div>
+    <div class="gr"><div class="gi fr" id="gfi"></div><div class="gi fl" id="gli"></div></div>
+  </div>
+  <div id="pop"></div>
+  <div id="intro"><small id="inS"></small><h2 id="inT"></h2><p id="inP"></p></div>
+  <div id="pr" class="pn"></div>
+  <div class="dd"></div><div class="dd"></div><div class="dd"></div>
+  <div class="ar"></div><div class="ar"></div><div class="ar"></div><div class="ar"></div><div class="ar"></div><div class="ar"></div>
+  <div id="hm"></div>
+  <div id="xh"><i></i><i></i><i></i><i></i><u></u></div>
+  <div id="wh"></div>
+</div>
+<div id="tch">
+  <div class="stk" id="sL" style="left:90px;bottom:30px;top:auto;margin:0"><i></i></div>
+  <button class="tb" id="bRoll" style="left:14px;bottom:176px"></button>
+  <button class="tb" id="bCr" style="left:80px;bottom:198px"></button>
+  <button class="tb" id="bFire" style="right:20px;bottom:32px"></button>
+  <button class="tb" id="bRel" style="right:124px;bottom:24px"></button>
+  <button class="tb" id="bSw" style="right:132px;bottom:94px"></button>
+  <button class="tb" id="bFr" style="right:24px;bottom:138px"></button>
+  <button class="tb" id="bFl" style="right:92px;bottom:162px"></button>
+  <button class="tb" id="bAds" style="right:24px;bottom:212px"></button>
+</div>
+<!-- main menu -->
+<div id="menu" class="scr vig">
+  <div class="logo">MAVİ<span>BERET</span></div>
+  <div class="tag">TAKTİKİ ATIŞMA</div>
+  <div class="mcol">
+    <button class="btn pri" data-go="maps"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>OYNA</button>
+    <button class="btn" data-go="arsenal"><svg viewBox="0 0 24 24"><path d="M2 10h13l2-2h5v4h-3v2h-6l-2 6H7l1-6H2z"/></svg>ARSENAL</button>
+    <button class="btn" data-go="settings"><svg viewBox="0 0 24 24"><path d="M10 2h4l.6 3 2.4 1.4 2.9-1 2 3.4-2.3 2v2.4l2.3 2-2 3.4-2.9-1L14.6 19 14 22h-4l-.6-3L7 17.6l-2.9 1-2-3.4 2.3-2v-2.4l-2.3-2 2-3.4 2.9 1L9.4 5zM12 9a3 3 0 100 6 3 3 0 000-6z"/></svg>TƏNZİMLƏMƏLƏR</button>
+    <button class="btn" data-go="help"><svg viewBox="0 0 24 24"><path d="M2 6h20v12H2zm3 3v2h2V9zm4 0v2h2V9zm4 0v2h2V9zm4 0v2h2V9zM6 13v2h12v-2z"/></svg>İDARƏETMƏ</button>
+  </div>
+  <div class="chips"><div class="chip" id="cMap"><i></i><span></span></div><div class="chip" id="cLd"></div></div>
+  <div class="ver">MAVİ BERET · v2.0</div>
+</div>
+<!-- map select -->
+<div id="maps" class="scr dim">
+  <div class="hd"><button class="btn" data-go="menu">‹ GERİ</button><h2>XƏRİTƏ SEÇ</h2></div>
+  <div class="wrap"><div class="mgrid" id="mgrid"></div>
+    <div class="foot"><span class="lbl">ÇƏTİNLİK</span><div class="seg" id="df"><button data-d="0">ASAN</button><button data-d="1">NORMAL</button><button data-d="2">ÇƏTİN</button></div>
+      <button class="btn" data-go="arsenal">ARSENAL</button><button class="btn pri" id="go"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>ƏMƏLİYYATA BAŞLA</button></div>
+  </div>
+</div>
+<!-- arsenal -->
+<div id="arsenal" class="scr dim">
+  <div class="hd"><button class="btn" id="arBack">‹ GERİ</button><h2>ARSENAL</h2></div>
+  <div class="wrap"><div class="sec">ƏSAS SİLAH</div><div class="wgrid" id="wg0"></div><div class="sec">İKİNCİ SİLAH</div><div class="wgrid" id="wg1"></div>
+    <div class="foot"><button class="btn pri" id="arOk">HAZIR</button></div></div>
+</div>
+<!-- settings -->
+<div id="settings" class="scr dim">
+  <div class="hd"><button class="btn" id="stBack">‹ GERİ</button><h2>TƏNZİMLƏMƏLƏR</h2></div>
+  <div class="wrap sgrid">
+    <div class="set"><h4>SƏS</h4><div class="seg" id="sSnd"><button data-v="1">AÇIQ</button><button data-v="0">BAĞLI</button></div><div style="height:12px"></div><input type="range" id="sVol" min="0" max="100"></div>
+    <div class="set"><h4>SİÇAN / BAXIŞ HƏSSASLIĞI</h4><input type="range" id="sSens" min="30" max="250"></div>
+    <div class="set"><h4>KAMERA MƏSAFƏSİ</h4><div class="seg" id="sCam"><button data-v="0">YAXIN</button><button data-v="1">ORTA</button><button data-v="2">UZAQ</button></div></div>
+    <div class="set"><h4>QRAFİKA KEYFİYYƏTİ</h4><div class="seg" id="sQ"><button data-v="0">AVTO</button><button data-v="1">YÜKSƏK</button><button data-v="2">ORTA</button><button data-v="3">AŞAĞI</button></div></div>
+    <div class="set"><h4>EKRAN TİTRƏMƏSİ</h4><div class="seg" id="sShk"><button data-v="1">AÇIQ</button><button data-v="0">BAĞLI</button></div></div>
+    <div class="set"><h4>HAVA EFFEKTLƏRİ</h4><div class="seg" id="sWx"><button data-v="1">AÇIQ</button><button data-v="0">BAĞLI</button></div></div>
+  </div>
+</div>
+<!-- controls -->
+<div id="help" class="scr dim">
+  <div class="hd"><button class="btn" data-go="menu">‹ GERİ</button><h2>İDARƏETMƏ</h2></div>
+  <div class="wrap sgrid">
+    <div class="set"><h4>KLAVİATURA VƏ SİÇAN</h4><div class="keys">
+      <kbd>W A S D</kbd><span>Hərəkət</span><kbd>Siçan</kbd><span>Ətrafa bax, nişan al</span><kbd>Sol düymə</kbd><span>Atəş</span><kbd>Sağ düymə</kbd><span>Yaxınlaşdır (snayperdə optika)</span>
+      <kbd>Shift</kbd><span>Qaç</span><kbd>C</kbd><span>Çöməl</span><kbd>Boşluq</kbd><span>Yuvarlan</span><kbd>R</kbd><span>Daraq dəyiş</span><kbd>1 · 2 · Q · təkər</kbd><span>Silah dəyiş</span>
+      <kbd>G</kbd><span>Partlayıcı qumbara</span><kbd>F</kbd><span>Flaş qumbarası</span><kbd>E</kbd><span>Dəstə: izlə / gözlə</span><kbd>Esc</kbd><span>Fasilə</span></div></div>
+    <div class="set"><h4>TOXUNMA EKRANI</h4><div class="keys">
+      <kbd>Sol barmaq</kbd><span>Hərəkət (sonadək itələ — qaç)</span><kbd>Sağ tərəf</kbd><span>Sürüşdür — ətrafa bax</span><kbd style="background:#c9332a">ATƏŞ</kbd><span>Basıb saxla, üstündə sürüşdürərək nişanı düzəlt</span>
+      <kbd style="background:#2287ae">NİŞAN</kbd><span>Yaxınlaşdırma aç / bağla</span><kbd style="background:#2f7a40">QUMBARA</kbd><span>Uzaqlıq baxış bucağından asılıdır</span><kbd style="background:#d9a520;color:#2a1f03">FLAŞ</kbd><span>Düşmənləri kor edir</span></div>
+      <p style="margin:14px 0 0;font-size:12px;color:#a9b7c8;font-weight:500;line-height:1.5">Yaralanan dəstə yoldaşının yanına get — avtomatik ayağa qaldırırsan. Qırmızı bareller partlayır. Yaşıl dairə — qumbaranın təhlükə zonası.</p></div>
+  </div>
+</div>
+<!-- in-game cards -->
+<div id="pause" class="scr dim"><div class="card"><h2>FASİLƏ</h2><p id="pInfo">Əməliyyat dayandırılıb</p>
+  <button class="btn pri" id="pRes">DAVAM ET</button><button class="btn" id="pSet">TƏNZİMLƏMƏLƏR</button><button class="btn" id="pRst">YENİDƏN BAŞLA</button><button class="btn" id="pMenu">ƏSAS MENYU</button></div></div>
+<div id="dead" class="scr dim"><div class="card"><h2 style="color:#ff8a70">YARALANDIN</h2><p>Dəstə səni örtüyə çəkdi</p>
+  <div class="stg"><span>Xal</span><b class="g" id="dSc">0</b><span>Zərərsizləşdirilən</span><b id="dK">0</b></div>
+  <button class="btn pri" id="dCont">YOXLAMA NÖQTƏSİNDƏN DAVAM</button><button class="btn" id="dRst">YENİDƏN BAŞLA</button><button class="btn" id="dMenu">ƏSAS MENYU</button></div></div>
+<div id="win" class="scr dim"><div class="card"><h2 style="color:#9fe08a" id="wTitle">ƏRAZİ TƏMİZLƏNDİ</h2><p id="wSub"></p>
+  <div class="stars" id="wStars"></div>
+  <div class="stg"><span>Xal</span><b class="g" id="wSc"></b><span>Ən yaxşı nəticə</span><b id="wBest"></b><span>Vaxt</span><b id="wT"></b><span>Zərərsizləşdirilən</span><b id="wK"></b><span>Dəqiqlik</span><b id="wA"></b><span>Yaralanma</span><b id="wD"></b></div>
+  <button class="btn pri" id="wNext">NÖVBƏTİ DALĞA</button><button class="btn" id="wMap">NÖVBƏTİ XƏRİTƏ</button><button class="btn" id="wMenu">ƏSAS MENYU</button></div></div>
+<div id="load"><div class="logo">MAVİ<span>BERET</span></div><div class="lb"><i id="lbi"></i></div><div id="lt">XƏRİTƏLƏR HAZIRLANIR</div></div>
+<div id="err">Bu cihazda WebGL2 dəstəklənmir. Oyunu başqa brauzerdə açmağı yoxlayın.</div>
+<script>
+(function(){'use strict';
+/*__JS__*/
+})();
+</script>
+</body>
+</html>
