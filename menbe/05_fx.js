@@ -1,8 +1,10 @@
 // ===== sound (synthesised) + particles, decals, lights =====
+for (const ev of ['pointerdown', 'keydown', 'touchend']) addEventListener(ev, () => { if (typeof SFX !== 'undefined') SFX.init(); }, { passive: true });
 const SFX = {
   ctx: null, on: true, vol: 0.9,
   init() {
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;   // wait for a real tap/click (no autoplay warning)
     try {
       const C = window.AudioContext || window.webkitAudioContext; if (!C) return; const c = this.ctx = new C();
       this.out = c.createGain(); this.out.gain.value = this.vol; const comp = c.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6;

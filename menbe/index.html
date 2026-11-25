@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Mavi Beret — taktiki atışma</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cellipse cx=%2732%27 cy=%2738%27 rx=%2728%27 ry=%2714%27 fill=%27%234a86d8%27/%3E%3Ccircle cx=%2746%27 cy=%2732%27 r=%275%27 fill=%27%23e3b21f%27/%3E%3C/svg%3E">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--ac:#86aee0;--gold:#f1c55b;--pn:rgba(12,16,23,.66);--ln:rgba(255,255,255,.12);--tx:#eef2f7;--mu:#9fb0c6}
@@ -88,7 +89,8 @@ svg{display:block}
 #pr{position:absolute;left:50%;bottom:24%;transform:translateX(-50%);padding:7px 15px;font-size:12.5px;display:none;color:#bfe0ff}
 /* touch layout */
 body.touch #hp,body.touch #pz{display:none}
-body.touch #wc{left:12px;right:auto;bottom:auto;top:146px;width:182px;padding:7px 10px}
+body.touch #wc{left:50%;right:auto;bottom:6px;top:auto;transform:translateX(-50%);width:auto;min-width:150px;padding:5px 12px;opacity:.92}
+@media (orientation:portrait){body.touch #wc{left:12px;transform:none;bottom:auto;top:146px;width:182px}}
 body.touch #wc .slots,body.touch #wc .gr{display:none}body.touch #amn{font-size:22px}body.touch .wl{flex-wrap:nowrap;white-space:nowrap}body.touch #wname{font-size:9.5px;letter-spacing:.08em}body.touch #amr{font-size:12px}
 body.touch #feed{display:none}
 /* ================= touch controls ================= */

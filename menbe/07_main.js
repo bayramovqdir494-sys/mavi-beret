@@ -80,7 +80,7 @@ cv.addEventListener('touchmove', e => {
   e.preventDefault();
   for (const t of e.changedTouches) {
     const s = I.ls; if (s.id === t.identifier) { s.x = t.clientX; s.y = t.clientY; const dx = s.x - s.ox, dy = s.y - s.oy, d = hyp(dx, dy); if (d > 62) { s.ox += dx / d * (d - 62); s.oy += dy / d * (d - 62); } stickEl($('sL'), s, true); }
-    const k = I.lk; if (k.id === t.identifier) { if (G.state === 'play') look((t.clientX - k.x) * 2.5, (t.clientY - k.y) * 2.0); k.x = t.clientX; k.y = t.clientY; }
+    const k = I.lk; if (k.id === t.identifier) { if (G.state === 'play') look((t.clientX - k.x) * 2.1, (t.clientY - k.y) * 1.7); k.x = t.clientX; k.y = t.clientY; }
   }
 }, { passive: false });
 const tEnd = e => { for (const t of e.changedTouches) { if (I.ls.id === t.identifier) { I.ls.id = -1; stickEl($('sL'), I.ls, false); } if (I.lk.id === t.identifier) I.lk.id = -1; } };
@@ -92,7 +92,7 @@ function initTouchButtons() {
   $('bAds').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); I.adsTog = !I.adsTog; $('bAds').classList.toggle('on', I.adsTog); });
   const b = $('bFire'); let px = 0, py = 0, pid = -1;
   b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); I.tFire = true; I.fireNew = true; pid = e.pointerId; px = e.clientX; py = e.clientY; b.classList.add('on'); try { b.setPointerCapture(pid); } catch (_) { } });
-  b.addEventListener('pointermove', e => { if (e.pointerId !== pid) return; if (G.state === 'play') look((e.clientX - px) * 2.5, (e.clientY - py) * 2.0); px = e.clientX; py = e.clientY; });
+  b.addEventListener('pointermove', e => { if (e.pointerId !== pid) return; if (G.state === 'play') look((e.clientX - px) * 2.1, (e.clientY - py) * 1.7); px = e.clientX; py = e.clientY; });
   const up = e => { if (e.pointerId !== pid) return; pid = -1; I.tFire = false; b.classList.remove('on'); };
   b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
 }
@@ -102,8 +102,8 @@ function readInput(dt) {
     const l = I.ls;
     if (l.id >= 0) { I.mx = clamp((l.x - l.ox) / 50, -1, 1); I.mz = clamp((l.y - l.oy) / 50, -1, 1); const m = hyp(I.mx, I.mz); if (m < 0.14) I.mx = I.mz = 0; I.sprint = m > 0.96 && I.mz < -0.7 && !I.tFire; } else { I.mx = I.mz = 0; I.sprint = false; }
     I.fire = I.tFire; I.ads = I.adsTog;
-    const t = aimTarget(p, I.aimYaw, 0.22, 30);
-    if (t) I.aimYaw += angDiff(I.aimYaw, atan2(t.x - p.x, t.z - p.z)) * (1 - Math.exp(-(I.fire ? 7 : 2.5) * dt));
+    const t = I.fire ? aimTarget(p, I.aimYaw, 0.18, 30) : null;
+    if (t) I.aimYaw += angDiff(I.aimYaw, atan2(t.x - p.x, t.z - p.z)) * (1 - Math.exp(-4.5 * dt));
   } else {
     I.mx = (k.KeyD ? 1 : 0) - (k.KeyA ? 1 : 0); I.mz = (k.KeyS || k.ArrowDown ? 1 : 0) - (k.KeyW || k.ArrowUp ? 1 : 0);
     I.sprint = !!(k.ShiftLeft || k.ShiftRight); I.fire = I.mouseFire; I.ads = I.rmb;
@@ -278,32 +278,35 @@ function updCamera(dt, now) {
     else { let qx = lx - ex, qz = lz - ez; const ql = hyp(qx, qz) || 1; qx /= ql; qz /= ql; lx += qz * 1.7; lz -= qx * 1.7; }
     fov = por ? min(1.25, 2 * Math.atan(Math.tan(0.36) / asp)) : 0.7; CAM.tx = lx; CAM.tz = lz;
   } else {
+    // stable third-person camera: smoothed follow + pitch, continuous collision pull-in (no pitch popping, no instant snaps)
     const p = G.player, w = p.weapon, aw = p.adsW || 0;
-    if (CAM.yaw === undefined) { CAM.yaw = I.aimYaw; CAM.px = p.x; CAM.pz = p.z; CAM.ep = I.pitch; CAM.cd = 7; }
-    if (!p.dead) CAM.yaw = angDamp(CAM.yaw, I.aimYaw, 28, dt);
-    CAM.px = damp(CAM.px, p.x, 16, dt); CAM.pz = damp(CAM.pz, p.z, 16, dt); if (hyp(CAM.px - p.x, CAM.pz - p.z) > 6) { CAM.px = p.x; CAM.pz = p.z; }
-    const y = CAM.yaw, fx = sin(y), fz = cos(y), rx = -cos(y), rz = sin(y), sh = lerp(por ? 0.25 : 0.62, por ? 0.5 : 0.8, aw);
-    const D0 = (por ? 8.6 : 6.9) * [0.8, 1, 1.24][CFG.cam], a0 = por ? 2.6 : 2.4, ahead = lerp(a0, 9, aw), pit = lerp(I.pitch, 0.03 + (I.pitch - P_MIN) * 0.12, aw);
-    const behind = lerp(cos(I.pitch) * D0 - a0, 2.5, aw), D = (ahead + behind) / cos(pit);
-    lx = CAM.px + fx * ahead + rx * sh; ly = 0.95 + aw * 0.68; lz = CAM.pz + fz * ahead + rz * sh;
-    const hx = CAM.px + rx * sh * 0.5, hy = 1.7, hz = CAM.pz + rz * sh * 0.5;
-    const eyeAt = (pt, o) => { const cp = cos(pt), spp = sin(pt); o[0] = lx - fx * cp * D; o[1] = ly + spp * D; o[2] = lz - fz * cp * D; return o; };
-    const occl = e => {
-      let best = 1;
-      for (let i = 0; i < 4; i++) {
-        const ox = i === 0 ? CAM.px : i === 1 ? hx : i === 2 ? CAM.px - rx * 0.35 : CAM.px + rx * 0.35, oz = i === 0 ? CAM.pz : i === 1 ? hz : i === 2 ? CAM.pz - rz * 0.35 : CAM.pz + rz * 0.35, oy = i === 3 ? 1.0 : i === 0 ? 1.2 : 1.7;
-        const dx = e[0] - ox, dy = e[1] - oy, dz = e[2] - oz, dl = hyp(dx, dy, dz), h = W.ray(ox, oy, oz, dx / dl, dy / dl, dz / dl, dl + 0.25);
-        if (h) best = min(best, (h.t - 0.3) / dl);
-      }
-      return best;
-    };
-    let want = pit, E = [0, 0, 0];
-    for (let pt = pit; pt < 1.3; pt += 0.12) { want = pt; if (occl(eyeAt(pt, E)) >= 1) break; }
-    CAM.ep = want > CAM.ep ? damp(CAM.ep, want, 14, dt) : damp(CAM.ep, want, aw > 0.02 || CAM.adsL > 0.02 ? 16 : 3, dt); CAM.adsL = aw;
-    eyeAt(CAM.ep, E); let dx = E[0] - hx, dy = E[1] - hy, dz = E[2] - hz; const dl = hyp(dx, dy, dz); dx /= dl; dy /= dl; dz /= dl;
-    const ok = occl(E); const wantD = ok < 1 ? max(1.1, dl * ok) : dl;
-    CAM.cd = wantD < CAM.cd ? wantD : damp(CAM.cd, wantD, 4, dt);
-    const sk = CFG.shake ? 1 : 0; ex = hx + dx * CAM.cd + FX.sx * 0.5 * sk; ey = hy + dy * CAM.cd + abs(FX.sz) * 0.3 * sk; ez = hz + dz * CAM.cd + FX.sz * 0.5 * sk;
+    if (CAM.yaw === undefined) { CAM.yaw = I.aimYaw; CAM.pit = I.pitch; CAM.px = p.x; CAM.pz = p.z; CAM.ph = 1.62; CAM.cd = -1; CAM.lift = 0; }
+    if (!p.dead) CAM.yaw = angDamp(CAM.yaw, I.aimYaw, I.touch ? 20 : 30, dt);
+    CAM.pit = damp(CAM.pit, I.pitch, 20, dt);
+    CAM.px = damp(CAM.px, p.x, 13, dt); CAM.pz = damp(CAM.pz, p.z, 13, dt); if (hyp(CAM.px - p.x, CAM.pz - p.z) > 4) { CAM.px = p.x; CAM.pz = p.z; }
+    CAM.ph = damp(CAM.ph, p.dead ? 1.1 : lerp(1.62, 1.22, p.cr || 0), 7, dt);
+    const y = CAM.yaw, fx = sin(y), fz = cos(y), rx = -cos(y), rz = sin(y), sh = lerp(por ? 0.3 : 0.6, por ? 0.5 : 0.78, aw);
+    const D0 = (por ? 8.4 : 6.6) * [0.8, 1, 1.24][CFG.cam], a0 = por ? 2.6 : 2.4, ahead = lerp(a0, 9, aw), pit = lerp(CAM.pit, 0.03 + (CAM.pit - P_MIN) * 0.12, aw) + CAM.lift;
+    const behind = lerp(cos(CAM.pit) * D0 - a0, 2.5, aw), D = (ahead + behind) / cos(pit);
+    lx = CAM.px + fx * ahead + rx * sh; ly = (CAM.ph - 0.67) + aw * 0.68; lz = CAM.pz + fz * ahead + rz * sh;
+    const hx = CAM.px + rx * sh * 0.5, hy = CAM.ph + 0.06, hz = CAM.pz + rz * sh * 0.5;   // pivot: just over the shoulder
+    const E = [lx - fx * cos(pit) * D, ly + sin(pit) * D, lz - fz * cos(pit) * D];
+    let dx = E[0] - hx, dy = E[1] - hy, dz = E[2] - hz; const dl = hyp(dx, dy, dz) || 1; dx /= dl; dy /= dl; dz /= dl;
+    // probe the pivot->eye segment with 5 rays (centre + a small box around the lens) so the near plane never enters walls
+    const ux = -dy * fx, uz = -dy * fz, uy = cos(pit);   // approximate camera up
+    let f = 1;
+    for (let i = 0; i < 5; i++) {
+      const ox = i === 1 ? rx * 0.32 : i === 2 ? -rx * 0.32 : i === 3 ? ux * 0.22 : i === 4 ? -ux * 0.22 : 0;
+      const oy = i === 3 ? uy * 0.22 : i === 4 ? -uy * 0.22 : 0, oz = i === 1 ? rz * 0.32 : i === 2 ? -rz * 0.32 : i === 3 ? uz * 0.22 : i === 4 ? -uz * 0.22 : 0;
+      const tx = E[0] + ox - hx, ty = E[1] + oy - hy, tz = E[2] + oz - hz, tl = hyp(tx, ty, tz) || 1;
+      const h = W.ray(hx, hy, hz, tx / tl, ty / tl, tz / tl, tl + 0.3);
+      if (h) f = min(f, max(0, (h.t - 0.3) / tl));
+    }
+    const wantD = clamp(dl * f, 1.35, dl);
+    if (CAM.cd < 0) CAM.cd = wantD;
+    CAM.cd = wantD < CAM.cd ? damp(CAM.cd, wantD, 16, dt) : damp(CAM.cd, wantD, 3.2, dt);
+    CAM.lift = damp(CAM.lift, (1 - CAM.cd / dl) * 0.32 * (1 - aw), 6, dt);   // gentle, continuous rise when a wall pushes the camera in
+    const sk = CFG.shake ? 1 : 0; ex = hx + dx * CAM.cd + FX.sx * 0.5 * sk; ey = max(0.45, hy + dy * CAM.cd + abs(FX.sz) * 0.3 * sk); ez = hz + dz * CAM.cd + FX.sz * 0.5 * sk;
     fov = (por ? min(1.42, 2 * Math.atan(Math.tan(0.6) / asp)) : 0.98) * lerp(1, w.zoom || 1, aw);
     CAM.tx = CAM.px + fx * 13; CAM.tz = CAM.pz + fz * 13;
   }
@@ -346,7 +349,7 @@ function render(now) {
       if (s.team === 1 && !menu && !s.vis && !s.dead) continue;
       const dx = s.x - E[0], dz = s.z - E[2], d2 = dx * dx + dz * dz;
       if (menu) { if (abs(s.x - fx) > 27 || abs(s.z - fz) > 30) continue; }
-      else { if (d2 > 4900 || -(dx * vfx + dz * vfz) < -1.5) continue; if (s.team === 0 && s !== G.player && d2 < 1.2) continue; }
+      else { if (d2 > 4900 || -(dx * vfx + dz * vfz) < -1.5) continue; if (s.team === 0 && s !== G.player && d2 < 6.25) continue; /* allies right at the lens would block the view */ }
       s.draw(now, G.frame);
     }
     drawEntities(fx, fz, now); FX.draw(fx, fz);
@@ -463,7 +466,7 @@ function screenshot(id) {
 function boot() {
   if (!R.init(cv)) { $('err').style.display = 'flex'; $('load').style.display = 'none'; return; }
   if (matchMedia('(pointer:coarse)').matches) setTouch();
-  buildWeapons(); for (const k in PAL) KITS[k] = buildKit(PAL[k]); HUD.init(); initTouchButtons();
+  buildWeapons(); for (const k in PAL) KITS[k] = buildKit(PAL[k]); hyApply(); HUD.init(); initTouchButtons();
   if (!WEAP[CFG.lp] || WEAP[CFG.lp].cat !== 0) CFG.lp = 'rifle'; if (!WEAP[CFG.ls] || WEAP[CFG.ls].cat !== 1) CFG.ls = 'shotgun'; if (!MAPS[CFG.map]) CFG.map = 'poligon'; CFG.diff = clamp(CFG.diff | 0, 0, 2);
   applyQuality(); applySound(); G.diff = CFG.diff;
   // UI wiring
@@ -484,7 +487,7 @@ function boot() {
   $('sSens').addEventListener('input', e => { CFG.sens = +e.target.value; saveCfg(); });
   $('sq').onclick = () => { if (G.state === 'play') toggleHold(); };
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-  window.__mb = { G, W, R, I, CAM, FX, HUD, SC, KITS, CFG, MAPS, start, respawn, nextWave, loadMap, toMenu, sim(n) { for (let i = 0; i < n; i++) update(1 / 60, G.time); } };
+  window.__mb = { G, W, R, I, CAM, FX, HUD, SC, KITS, WEAP, CFG, MAPS, start, respawn, nextWave, loadMap, toMenu, updCamera, render, sim(n) { for (let i = 0; i < n; i++) update(1 / 60, G.time); } };
   // build every map once for its picture, then open the chosen one
   let i = 0; const total = MAP_ORDER.length + 1;
   const step = () => {
@@ -496,4 +499,4 @@ function boot() {
   };
   setTimeout(step, 30);
 }
-try { boot(); } catch (e) { console.error(e); const el = $('err'); el.style.display = 'flex'; el.textContent = 'Xəta: ' + e.message; }
+hyLoad().then(() => { try { boot(); } catch (e) { console.error(e); const el = $('err'); el.style.display = 'flex'; el.textContent = 'Xəta: ' + e.message; } });

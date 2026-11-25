@@ -258,12 +258,13 @@ class Soldier {
     // arms (IK)
     const plx = Mt[0] * 0.55 - Mt[4] - Mt[8] * 0.25, ply = Mt[1] * 0.55 - Mt[5] - Mt[9] * 0.25, plz = Mt[2] * 0.55 - Mt[6] - Mt[10] * 0.25;
     const prx = -Mt[0] * 0.55 - Mt[4] - Mt[8] * 0.25, pry = -Mt[1] * 0.55 - Mt[5] - Mt[9] * 0.25, prz = -Mt[2] * 0.55 - Mt[6] - Mt[10] * 0.25;
+    // forearm twist hint: away from the upper arm (+ a little forward) so the hand/sleeve keeps a stable roll at any elbow bend
     ik2(V_, srx, sry, srz, rhx, rhy, rhz, L_UA, L_FA, prx, pry, prz);
-    m = R.add(k.uarm, fl, 1, tc, tc, ta); m4seg(m, srx, sry, srz, V_[0], V_[1], V_[2], ac, 0, -as); m4mul(m, Rt, m);
-    m = R.add(k.farm, fl, 1, tc, tc, ta); m4seg(m, V_[0], V_[1], V_[2], V_[3], V_[4], V_[5], as, 0, ac); m4mul(m, Rt, m);
+    m = R.add(k.uarmR || k.uarm, fl, 1, tc, tc, ta); m4seg(m, srx, sry, srz, V_[0], V_[1], V_[2], ac, 0, -as); m4mul(m, Rt, m);
+    m = R.add(k.farmR || k.farm, fl, 1, tc, tc, ta); m4seg(m, V_[0], V_[1], V_[2], V_[3], V_[4], V_[5], (srx - V_[0]) / L_UA + 0.35 * as, (sry - V_[1]) / L_UA, (srz - V_[2]) / L_UA + 0.35 * ac); m4mul(m, Rt, m);
     ik2(V_, slx, sly, slz, lhx, lhy, lhz, L_UA, L_FA, plx, ply, plz);
-    m = R.add(k.uarm, fl, 1, tc, tc, ta); m4seg(m, slx, sly, slz, V_[0], V_[1], V_[2], -ac, 0, as); m4mul(m, Rt, m);
-    m = R.add(k.farm, fl, 1, tc, tc, ta); m4seg(m, V_[0], V_[1], V_[2], V_[3], V_[4], V_[5], as, 0, ac); m4mul(m, Rt, m);
+    m = R.add(k.uarmL || k.uarm, fl, 1, tc, tc, ta); m4seg(m, slx, sly, slz, V_[0], V_[1], V_[2], -ac, 0, as); m4mul(m, Rt, m);
+    m = R.add(k.farmL || k.farm, fl, 1, tc, tc, ta); m4seg(m, V_[0], V_[1], V_[2], V_[3], V_[4], V_[5], (slx - V_[0]) / L_UA + 0.35 * as, (sly - V_[1]) / L_UA, (slz - V_[2]) / L_UA + 0.35 * ac); m4mul(m, Rt, m);
     if (!dead) {
       m = R.add(W_.mesh, R.CAST | (this.team === 0 ? R.SIL : 0), 1, 1, 1, ta); m4mul(m, Rt, Mw);
       p = m4pt(m, W_.muz[0], W_.muz[1], W_.muz[2], P_); this.mzx = p[0]; this.mzy = p[1]; this.mzz = p[2]; this.mzF = frame;
@@ -276,9 +277,10 @@ class Soldier {
       const ax = hc * fx + hs * fz, az = -hs * fx + hc * fz;
       const kd = i ? crE * 1.3 : 0;
       ik2(V_, jx, jy, jz, ax, fy, az, L_TH, L_SH, hs + hc * sd * 0.2, -kd, hc - hs * sd * 0.2);
-      m = R.add(k.thigh, fl, 1, tc, tc, ta); m4seg(m, jx, jy, jz, V_[0], V_[1], V_[2], hs, 0, hc); m4mul(m, Rt, m);
-      m = R.add(k.shin, fl, 1, tc, tc, ta); m4seg(m, V_[0], V_[1], V_[2], V_[3], V_[4], V_[5], hs, 0, hc); m4mul(m, Rt, m);
-      m = R.add(k.boot, fl, 1, tc, tc, ta); m4trs(m, V_[3], V_[4], V_[5], hy + sd * 0.12, mv * (s_ > 0 ? 0.5 * s_ : 0) + (i ? crE * 0.75 : 0) + dk * 0.5, 0); m4mul(m, Rt, m);
+      const lgH = hs + hc * sd * 0.2, lgZ = hc - hs * sd * 0.2;
+      m = R.add((i ? k.thighR : k.thighL) || k.thigh, fl, 1, tc, tc, ta); m4seg(m, jx, jy, jz, V_[0], V_[1], V_[2], lgH, 0, lgZ); m4mul(m, Rt, m);
+      m = R.add((i ? k.shinR : k.shinL) || k.shin, fl, 1, tc, tc, ta); m4seg(m, V_[0], V_[1], V_[2], V_[3], V_[4], V_[5], lgH, 0, lgZ); m4mul(m, Rt, m);
+      m = R.add((i ? k.bootR : k.bootL) || k.boot, fl, 1, tc, tc, ta); m4trs(m, V_[3], V_[4], V_[5], hy + sd * 0.12, mv * (s_ > 0 ? 0.5 * s_ : 0) + (i ? crE * 0.75 : 0) + dk * 0.5, 0); m4mul(m, Rt, m);
     }
   }
 }
